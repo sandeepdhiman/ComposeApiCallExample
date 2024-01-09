@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mycomposeapiexample.model.Album
 import com.example.mycomposeapiexample.model.PhotoData
+import com.example.mycomposeapiexample.model.PhotoDataItem
 import com.example.mycomposeapiexample.repository.Repository
 import com.example.mycomposeapiexample.util.Status
 import com.example.util.Resource
@@ -15,20 +16,21 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MyViewModel @Inject constructor(private val repository: Repository):ViewModel() {
+    private val list = listOf<PhotoDataItem>()
+    val photoList = MutableStateFlow(Resource(Status.LOADING, list,""))
 
-    val photoList = MutableStateFlow(Resource(Status.LOADING, PhotoData(),""))
 
     init {
      getAlbumData()
     }
 
     private fun getAlbumData(){
-        photoList.value = Resource.loading(null)
+        photoList.value = Resource.loading(list)
         viewModelScope.launch {
 
 
             repository.getAlbumList().catch {
-                photoList.value = Resource.error(it.message.toString(),null)
+                photoList.value = Resource.error(it.message.toString(),list)
             }.collect{
                 photoList.value = Resource.success(it.data)
             }
